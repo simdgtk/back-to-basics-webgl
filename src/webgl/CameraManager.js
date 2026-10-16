@@ -14,9 +14,7 @@ export default class CameraManager {
 
     this.camera = this.createCamera();
     this.cameraControls = this.createCameraControls();
-    // this.controls = this.createControls();
 
-    // this.debugFolder = this.createDebugFolder();
     this.setupEventListeners();
   }
 
@@ -40,7 +38,7 @@ export default class CameraManager {
       this.renderer.domElement,
     );
     cameraControls.smoothTime = 0.2;
-    cameraControls.enabled = false
+    cameraControls.enabled = false;
 
     return cameraControls;
   }
@@ -57,12 +55,6 @@ export default class CameraManager {
   }
 
   update(character, deltaTime) {
-    if (this.cameraControls && this.cameraControls.enabled) {
-      // this.cameraControls.update();
-
-      return;
-    }
-
     if (character) {
       const charPos = character.position;
 

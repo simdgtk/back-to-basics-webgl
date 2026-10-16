@@ -45,7 +45,7 @@ export default class SceneDefault extends Scene {
 
     this.renderer = options.renderer;
     this.debugger = options.debugger;
-
+    this.audio = options.audio;
     this.cameraManager = this.createCameraManager();
     this.envmap = this.createEnvmap();
 
@@ -139,10 +139,6 @@ export default class SceneDefault extends Scene {
 
     this.canvasNoFuture.font = `bold ${fontSize}px ${fontName}`;
     this.canvasNoFuture.fillText(`${text}`, x, y);
-  }
-
-  updateProgress(value) {
-    this.updateGrayScaleIntensity(value);
   }
 
   async createModel() {
@@ -347,9 +343,19 @@ export default class SceneDefault extends Scene {
 
     return canvasDrawingInterval;
   }
+
+  updateAudioNoise(value) {
+    if (value > 0.2) {
+      this.audio.volume = remap(value, 0.2, 1, 0, 1);
+      this.audio.play();
+    }
+  }
+
   updateClampedProgress(value) {
     this.updateGlitchEffect(value);
     this.updateGrayScaleIntensity(value);
+
+    this.updateAudioNoise(value);
 
     if (value >= 0.97) {
       this.pauseCanvasDrawingInterval = false;
@@ -377,7 +383,7 @@ export default class SceneDefault extends Scene {
     document.addEventListener("keydown", (e) => {
       if (e.repeat) return;
       if (isUpKey(e)) {
-        this.character.actions.walk.timeScale = 1.5;
+        this.character.actions.walk.timeScale = constants.ANIMATION_SPEED;
         this.character.isWalking = true;
         this.character.stopAnimation("idle");
         this.character.startAnimation("walk");
@@ -395,7 +401,7 @@ export default class SceneDefault extends Scene {
         this.character.isWalking = true;
         this.character.stopAnimation("idle");
         this.character.startAnimation("walk");
-        this.character.actions.walk.timeScale = -1.5;
+        this.character.actions.walk.timeScale = -constants.ANIMATION_SPEED;
       }
     });
 
@@ -406,5 +412,7 @@ export default class SceneDefault extends Scene {
         this.character.startAnimation("idle");
       }
     });
+
+    window;
   }
 }

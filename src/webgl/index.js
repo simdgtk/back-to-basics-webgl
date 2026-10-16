@@ -4,14 +4,12 @@ import SceneDefault from "./SceneDefault";
 import * as constants from "./utils/constants.js";
 
 export default class WebGLApplication {
-  constructor() {
+  constructor(options = {}) {
     this.renderWidth = window.innerWidth;
     this.renderHeight = window.innerHeight;
-
+    this.audioElement = options.audioElement;
+    this.hasBeenCliqued = false;
     this.timer = new Timer();
-
-    // this.debugger = new Pane({ title: "Debug" });
-
     this.renderer = this.createRenderer();
     this.sceneDefault = this.createSceneDefault();
 
@@ -46,6 +44,7 @@ export default class WebGLApplication {
     const scene = new SceneDefault({
       renderer: this.renderer,
       debugger: this.debugger,
+      audio: this.audioElement,
     });
 
     return scene;

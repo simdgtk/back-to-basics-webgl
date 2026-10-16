@@ -3,7 +3,9 @@ import { Vector2 } from "three";
 export const BACKGROUND_COLOR_JS = 0xe9ecef;
 export const BACKGROUND_COLOR_HEXA = "#e9ecef";
 export const ANIMATION_TRANSITION_DURATION = 1;
-export const CHARACTER_SPEED = 0.6
+export const CHARACTER_SPEED = 0.9;
+export const ANIMATION_SPEED = 2;
+
 export const CROSS_PLATFORM_FONTS = [
   "Arial",
   "Arial Black",
