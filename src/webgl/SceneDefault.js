@@ -61,6 +61,9 @@ export default class SceneDefault extends Scene {
 
     this.canvasNoFuture = this.createNoFuture();
 
+    this.pauseCanvasDrawingInterval = true;
+    this.canvasDrawingInterval = this.setupCanvasDrawingInterval();
+
     this.character = this.addCharacter();
 
     this.model = this.createModel();
@@ -118,12 +121,11 @@ export default class SceneDefault extends Scene {
     context.font = "bold 130px Verdana";
     context.textAlign = "center";
     context.textBaseline = "middle";
-    context.fillText("NO FUTURE", canvas.width / 2, canvas.height / 2);
 
     return context;
   }
 
-  updateNoFuture(x, y, fontSize, fontName) {
+  updateNoFuture(x, y, fontSize, fontName, text) {
     this.canvasNoFuture.fillStyle = "rgba(0, 0, 0, 0.5)";
 
     this.canvasNoFuture.fillRect(
@@ -136,7 +138,7 @@ export default class SceneDefault extends Scene {
     this.canvasNoFuture.fillStyle = "#fff";
 
     this.canvasNoFuture.font = `bold ${fontSize}px ${fontName}`;
-    this.canvasNoFuture.fillText("NO FUTURE", x, y);
+    this.canvasNoFuture.fillText(`${text}`, x, y);
   }
 
   updateProgress(value) {
@@ -241,39 +243,19 @@ export default class SceneDefault extends Scene {
   }
 
   updateGlitchEffect(value) {
-    // if (value < 0.3 ) {
-    //   this.glitchEffectPassSmall.setEnabled(false);
-    //   this.glitchEffectPassMedium.setEnabled(false);
-    //   this.glitchEffectPassStrong.setEnabled(false);
-    // }
+    this.glitchEffectPassSmall.setEnabled(false);
+    this.glitchEffectPassMedium.setEnabled(false);
+    this.glitchEffectPassStrong.setEnabled(false);
 
-    if (value > 0.3 && value < 0.6) {
-      this.glitchEffectPassSmall.setEnabled(false);
-      this.glitchEffectPassMedium.setEnabled(false);
-      this.glitchEffectPassStrong.setEnabled(false);
-
+    if (value >= 0.3 && value <= 0.6) {
       this.glitchEffectPassSmall.setEnabled(true);
-      console.log("mettre 1er");
     }
 
-    if (value > 0.6 && value < 0.9) {
-      this.glitchEffectPassSmall.setEnabled(false);
-      this.glitchEffectPassMedium.setEnabled(false);
-      this.glitchEffectPassStrong.setEnabled(false);
-
-      this.glitchEffectPassSmall.setEnabled(false);
+    if (value >= 0.6 && value < 0.9) {
       this.glitchEffectPassMedium.setEnabled(true);
-      console.log("mettre 2e");
     }
     if (value > 0.9) {
-      this.glitchEffectPassSmall.setEnabled(false);
-      this.glitchEffectPassMedium.setEnabled(false);
-      this.glitchEffectPassStrong.setEnabled(false);
-      
-      this.glitchEffectPassSmall.setEnabled(false);
-      this.glitchEffectPassMedium.setEnabled(false);
       this.glitchEffectPassStrong.setEnabled(true);
-      console.log("mettre 3");
     }
   }
 
@@ -326,6 +308,8 @@ export default class SceneDefault extends Scene {
     this.composer.addPass(new RenderPass(this, this.camera));
 
     this.composer.addPass(this.glitchEffectPassSmall);
+    this.composer.addPass(this.glitchEffectPassMedium);
+    this.composer.addPass(this.glitchEffectPassStrong);
 
     this.grayscaleEffect = new GrayscaleEffect();
     this.composer.addPass(new EffectPass(this.camera, this.grayscaleEffect));
@@ -334,9 +318,44 @@ export default class SceneDefault extends Scene {
     this.updateGrayScaleIntensity(0);
   }
 
+  setupCanvasDrawingInterval() {
+    const canvasDrawingInterval = setInterval(() => {
+      if (!this.pauseCanvasDrawingInterval) {
+        if (this.canvasNoFuture) {
+          const fontSize = Math.floor(Math.random() * 300) + 50;
+          const x = Math.random() * this.canvasNoFuture.canvas.width;
+          const y = Math.random() * this.canvasNoFuture.canvas.height;
+          const fontName =
+            constants.CROSS_PLATFORM_FONTS[
+              Math.floor(Math.random() * constants.CROSS_PLATFORM_FONTS.length)
+            ];
+
+          const text =
+            constants.TEXTS[Math.floor(Math.random() * constants.TEXTS.length)];
+
+          this.updateNoFuture(x, y, fontSize, fontName, text);
+        }
+      } else {
+        this.canvasNoFuture.clearRect(
+          0,
+          0,
+          window.innerWidth,
+          window.innerHeight,
+        );
+      }
+    }, constants.CANVAS_DRAWING_INTERVAL_MS);
+
+    return canvasDrawingInterval;
+  }
   updateClampedProgress(value) {
     this.updateGlitchEffect(value);
     this.updateGrayScaleIntensity(value);
+
+    if (value >= 0.97) {
+      this.pauseCanvasDrawingInterval = false;
+    } else {
+      this.pauseCanvasDrawingInterval = true;
+    }
   }
 
   /**
@@ -358,7 +377,7 @@ export default class SceneDefault extends Scene {
     document.addEventListener("keydown", (e) => {
       if (e.repeat) return;
       if (isUpKey(e)) {
-        this.character.actions.walk.timeScale = 1;
+        this.character.actions.walk.timeScale = 1.5;
         this.character.isWalking = true;
         this.character.stopAnimation("idle");
         this.character.startAnimation("walk");
@@ -376,7 +395,7 @@ export default class SceneDefault extends Scene {
         this.character.isWalking = true;
         this.character.stopAnimation("idle");
         this.character.startAnimation("walk");
-        this.character.actions.walk.timeScale = -1;
+        this.character.actions.walk.timeScale = -1.5;
       }
     });
 
@@ -387,19 +406,5 @@ export default class SceneDefault extends Scene {
         this.character.startAnimation("idle");
       }
     });
-
-    setInterval(() => {
-      if (this.canvasNoFuture) {
-        const fontSize = Math.floor(Math.random() * 300) + 50;
-        const x = Math.random() * this.canvasNoFuture.canvas.width;
-        const y = Math.random() * this.canvasNoFuture.canvas.height;
-        const fontName =
-          constants.CROSS_PLATFORM_FONTS[
-            Math.floor(Math.random() * constants.CROSS_PLATFORM_FONTS.length)
-          ];
-
-        this.updateNoFuture(x, y, fontSize, fontName);
-      }
-    }, 2500);
   }
 }

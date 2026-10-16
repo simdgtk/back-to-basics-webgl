@@ -1,5 +1,6 @@
 import { Object3D, AnimationMixer } from "three";
 import { clamp, remap } from "./utils/maths";
+import { CHARACTER_SPEED } from "./utils/constants";
 
 export default class Character extends Object3D {
   constructor(options = {}, callback) {
@@ -8,17 +9,10 @@ export default class Character extends Object3D {
     this.loader = options.loader;
     this.actions = {};
     this.mixer = null;
-
     this.scene = options.scene;
-    // this.progress = 0;
-
     this.isLoaded = false;
     this.loading = this.load();
     this.isWalking = false;
-
-    // this.callback = this.callback(
-    //   clamp(remap(this.progress, 2, -41, 0, 1), 0, 1),
-    // );
   }
 
   async load() {
@@ -28,10 +22,6 @@ export default class Character extends Object3D {
     this.isLoaded = true;
     this.startAnimation("idle");
   }
-
-  //   callback() {
-
-  //   }
 
   createModel() {
     const object = this.gltf.scene;
@@ -62,42 +52,6 @@ export default class Character extends Object3D {
     };
   }
 
-  /**
-   * CrossFade
-   */
-  prepareCrossFade(startAction, endAction) {
-    this.mixer.stopAllAction();
-
-    if (startAction === idleAction) {
-      executeCrossFade(startAction, endAction);
-    } else {
-      synchronizeCrossFade(startAction, endAction);
-    }
-  }
-
-  executeCrossFade(startAction, endAction) {
-    setWeight(endAction, 1);
-    endAction.time = 0;
-
-    startAction.crossFadeTo(
-      endAction,
-      constants.ANIMATION_TRANSITION_DURATION,
-      true,
-    );
-  }
-
-  synchronizeCrossFade(startAction, endAction) {
-    this.mixer.addEventListener("loop", onLoopFinished);
-
-    function onLoopFinished(event) {
-      if (event.action === startAction) {
-        this.mixer.removeEventListener("loop", onLoopFinished);
-
-        executeCrossFade(startAction, endAction);
-      }
-    }
-  }
-
   async startAnimation(animationName) {
     if (!this.isLoaded && this.loading) {
       await this.loading;
@@ -125,8 +79,6 @@ export default class Character extends Object3D {
     }
   }
 
-  updateProgress() {}
-
   update(deltaTime) {
     if (this.mixer) {
       this.mixer.update(deltaTime);
@@ -149,15 +101,23 @@ export default class Character extends Object3D {
         return;
       }
 
-      if (this.actions.walk.timeScale == -1) {
-        this.position.z += 6 * deltaTime;
-        this.scene.progress += 6 * deltaTime;
-        this.scene.clampedProgress = clamp(remap(this.scene.progress, 2, -41, 0, 1), 0, 1);
+      if (this.actions.walk.timeScale < 0) {
+        this.position.z += CHARACTER_SPEED * deltaTime;
+        this.scene.progress += CHARACTER_SPEED * deltaTime;
+        this.scene.clampedProgress = clamp(
+          remap(this.scene.progress, 2, -41, 0, 1),
+          0,
+          1,
+        );
         this.scene.updateClampedProgress(this.scene.clampedProgress);
       } else {
-        this.position.z -= 6 * deltaTime;
-        this.scene.progress -= 6 * deltaTime;
-        this.scene.clampedProgress = clamp(remap(this.scene.progress, 2, -41, 0, 1), 0, 1);
+        this.position.z -= CHARACTER_SPEED * deltaTime;
+        this.scene.progress -= CHARACTER_SPEED * deltaTime;
+        this.scene.clampedProgress = clamp(
+          remap(this.scene.progress, 2, -41, 0, 1),
+          0,
+          1,
+        );
         this.scene.updateClampedProgress(this.scene.clampedProgress);
       }
     }

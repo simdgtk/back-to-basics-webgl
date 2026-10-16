@@ -33,7 +33,6 @@ export default class WebGLApplication {
       powerPreference: "high-performance",
       antialias: false,
       stencil: false,
-      // depth: false,
     });
 
     renderer.setPixelRatio(Math.max(window.devicePixelRatio, 2));
