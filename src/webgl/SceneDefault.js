@@ -413,6 +413,12 @@ export default class SceneDefault extends Scene {
       }
     });
 
-    window;
+    document.addEventListener("visibilitychange", () => {
+      if (this.audio && this.audio.paused) {
+        this.audio.pause();
+      } else if (this.audio) {
+        this.audio.pause();
+      }
+    });
   }
 }
